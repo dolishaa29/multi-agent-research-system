@@ -1,5 +1,15 @@
 from agent import build_reader_agent , build_search_agent, writer_chain, critic_chain
 
+def extract_text(content)->str:
+    if isinstance(content,str):
+        return content
+    if isinstance(content,list):
+        return "".join(
+            block.get("text","") if isinstance(block,dict) else str(block)
+            for block in content
+        )
+    return str(content)
+
 def run_research_pipeline(topic:str)->dict:
     state={}
     print("\n"+" ="*50)
@@ -11,7 +21,7 @@ def run_research_pipeline(topic:str)->dict:
         "messages":[("user",f"Find recent , reliable and detailed information about:{topic}")]
 
     })
-    state["search_results"]=search_result["messages"][-1].content
+    state["search_results"]=extract_text(search_result["messages"][-1].content)
     print(state['search_results'])
 
     print("\n"+" ="*50)
