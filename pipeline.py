@@ -39,3 +39,7 @@ def run_research_pipeline(topic:str)->dict:
     print(state["research"])
 
     return state
+
+if __name__=="__main__":
+    topic=input("Enter research topic: ")
+    run_research_pipeline(topic)
