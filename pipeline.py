@@ -35,7 +35,7 @@ def run_research_pipeline(topic:str)->dict:
                     f"URLs and scrape them for deeper, detailed information. Summarize what you find "
                     f"into clear research notes.\n\nSearch results:\n{state['search_results']}")]
     })
-    state["reader_results"]=reader_result["messages"][-1].content
+    state["reader_results"]=extract_text(reader_result["messages"][-1].content)
     print(state['reader_results'])
 
     print("\n"+" ="*50)
