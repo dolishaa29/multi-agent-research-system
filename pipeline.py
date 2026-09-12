@@ -1,4 +1,4 @@
-from agent import build_reader_agent , build_search_agent, writer_chain, critic_chain
+from agent import build_reader_agent , build_search_agent, writer_chain, critic_chain, planner_chain
 
 def extract_text(content)->str:
     if isinstance(content,str):
@@ -13,12 +13,23 @@ def extract_text(content)->str:
 def run_research_pipeline(topic:str)->dict:
     state={}
     print("\n"+" ="*50)
+    print("step0 planner is working")
+    print("="*50)
+
+    state["plan"]=planner_chain.invoke({"topic":topic})
+    print(state["plan"])
+
+    print("\n"+" ="*50)
     print("step1 agent is working")
     print("="*50)
 
     search_agent=build_search_agent()
     search_result=search_agent.invoke({
-        "messages":[("user",f"Find recent , reliable and detailed information about:{topic}")]
+        "messages":[("user",
+                    f"Research the topic '{topic}' by investigating each of the following "
+                    f"sub-questions. For each one, use the web_search tool to find recent, "
+                    f"reliable, detailed information, and present the results grouped under "
+                    f"that sub-question.\n\nSub-questions:\n{state['plan']}")]
 
     })
     state["search_results"]=extract_text(search_result["messages"][-1].content)
@@ -43,6 +54,7 @@ def run_research_pipeline(topic:str)->dict:
     print("="*50)
 
     state["research"]=(
+        f"--- Research Plan ---\n{state['plan']}\n\n"
         f"--- Search Results ---\n{state['search_results']}\n\n"
         f"--- Detailed Notes ---\n{state['reader_results']}"
     )

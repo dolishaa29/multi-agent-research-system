@@ -57,6 +57,11 @@ function App() {
       {result && (
         <div className="results">
           <section className="panel">
+            <h2>Research Plan</h2>
+            <pre>{result.plan}</pre>
+          </section>
+
+          <section className="panel">
             <h2>Search Results</h2>
             <pre>{result.search_results}</pre>
           </section>

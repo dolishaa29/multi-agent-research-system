@@ -19,7 +19,20 @@ def build_reader_agent():
         model=llm,
         tools=[scrape_url]
     )
-    
+
+
+planner_prompt=ChatPromptTemplate.from_messages([
+    ("system",
+     "You are a research planner. Given a broad research topic, break it down into 3-5 "
+     "focused sub-questions that together give comprehensive, non-overlapping coverage of the "
+     "topic (e.g. background/definition, current state, key players, challenges, future outlook "
+     "- where relevant to the topic).\n\n"
+     "Output ONLY a numbered list of sub-questions, one per line. No preamble, no commentary."),
+    ("human", "Topic: {topic}"),
+])
+
+planner_chain=planner_prompt | llm | StrOutputParser()
+
 
 writer_promt=ChatPromptTemplate.from_messages([
     ("system",
