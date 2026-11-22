@@ -1,67 +1,77 @@
-from agent import build_reader_agent , build_search_agent, writer_chain, critic_chain, planner_chain
+from agent import (
+    build_reader_agent,
+    build_search_agent,
+    critic_chain,
+    planner_chain,
+    revise_chain,
+    writer_chain,
+)
 
-def extract_text(content)->str:
-    if isinstance(content,str):
+MAX_REVISIONS = 2
+
+
+def message_text(content) -> str:
+    if isinstance(content, str):
         return content
-    if isinstance(content,list):
+    if isinstance(content, list):
         return "".join(
-            block.get("text","") if isinstance(block,dict) else str(block)
+            block.get("text", "") if isinstance(block, dict) else str(block)
             for block in content
         )
     return str(content)
 
-def run_research_pipeline(topic:str)->dict:
-    state={}
-    print("\n"+" ="*50)
-    print("step0 planner is working")
-    print("="*50)
+def run_research_pipeline(topic: str) -> dict:
+    print("Planning research")
+    plan = planner_chain.invoke({"topic": topic})
 
-    state["plan"]=planner_chain.invoke({"topic":topic})
-    print(state["plan"])
-
-    print("\n"+" ="*50)
-    print("step1 agent is working")
-    print("="*50)
-
-    search_agent=build_search_agent()
-    search_result=search_agent.invoke({
-        "messages":[("user",
-                    f"Research the topic '{topic}' by investigating each of the following "
-                    f"sub-questions. For each one, use the web_search tool to find recent, "
-                    f"reliable, detailed information, and present the results grouped under "
-                    f"that sub-question.\n\nSub-questions:\n{state['plan']}")]
-
-    })
-    state["search_results"]=extract_text(search_result["messages"][-1].content)
-    print(state['search_results'])
-
-    print("\n"+" ="*50)
-    print("step2 reader agent is working")
-    print("="*50)
-
-    reader_agent=build_reader_agent()
-    reader_result=reader_agent.invoke({
-        "messages":[("user",
-                    f"Based on the following search results about '{topic}', pick the most relevant "
-                    f"URLs and scrape them for deeper, detailed information. Summarize what you find "
-                    f"into clear research notes.\n\nSearch results:\n{state['search_results']}")]
-    })
-    state["reader_results"]=extract_text(reader_result["messages"][-1].content)
-    print(state['reader_results'])
-
-    print("\n"+" ="*50)
-    print("combining research")
-    print("="*50)
-
-    state["research"]=(
-        f"--- Research Plan ---\n{state['plan']}\n\n"
-        f"--- Search Results ---\n{state['search_results']}\n\n"
-        f"--- Detailed Notes ---\n{state['reader_results']}"
+    print("Searching the web")
+    search_prompt = (
+        f"Research the topic '{topic}' by investigating each of the following "
+        "sub-questions. For each one, use the web_search tool to find recent, "
+        "reliable, detailed information, and present the results grouped under "
+        f"that sub-question.\n\nSub-questions:\n{plan}"
     )
-    print(state["research"])
+    search_reply = build_search_agent().invoke({"messages": [("user", search_prompt)]})
+    search_results = message_text(search_reply["messages"][-1].content)
 
-    return state
+    print("Reading sources")
+    reader_prompt = (
+        f"Based on the following search results about '{topic}', pick the most relevant "
+        "URLs and scrape them for deeper, detailed information. Summarize what you find "
+        f"into clear research notes.\n\nSearch results:\n{search_results}"
+    )
+    reader_reply = build_reader_agent().invoke({"messages": [("user", reader_prompt)]})
+    reader_notes = message_text(reader_reply["messages"][-1].content)
 
-if __name__=="__main__":
-    topic=input("Enter research topic: ")
-    run_research_pipeline(topic)
+    research = (
+        f"--- Research Plan ---\n{plan}\n\n"
+        f"--- Search Results ---\n{search_results}\n\n"
+        f"--- Detailed Notes ---\n{reader_notes}"
+    )
+    print("Writing the article")
+    article = writer_chain.invoke({"topic": topic, "research": research})
+
+    print("Reviewing the article")
+    review = critic_chain.invoke({"topic": topic, "research": research, "draft": article})
+    revisions = 0
+    while "NEEDS REVISION" in review.upper() and revisions < MAX_REVISIONS:
+        revisions += 1
+        print(f"Revising the article ({revisions}/{MAX_REVISIONS})")
+        article = revise_chain.invoke({
+            "topic": topic,
+            "research": research,
+            "draft": article,
+            "issues": review,
+        })
+        review = critic_chain.invoke({"topic": topic, "research": research, "draft": article})
+
+    return {
+        "plan": plan,
+        "search_results": search_results,
+        "reader_results": reader_notes,
+        "research": research,
+        "draft": article,
+        "article": article,
+        "review": review,
+        "revisions": revisions,
+    }

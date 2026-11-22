@@ -1,93 +1,168 @@
-.page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
-  font-family: system-ui, sans-serif;
-  color: #1f2328;
+﻿.workspace {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  height: 100dvh;
 }
 
-h1 {
-  font-size: 1.75rem;
-  margin-bottom: 1.5rem;
+.sidebar {
+  padding: 24px 16px;
+  background: #f2eef8;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
 }
 
-.topic-form {
+.brand, .answer-heading {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
 }
 
-.topic-form input {
-  flex: 1;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  font-size: 1rem;
-}
-
-.topic-form button {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 6px;
-  background: #1f6feb;
+.brand-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
   color: white;
-  font-size: 1rem;
-  cursor: pointer;
+  background: #6240ac;
+  font-size: 1.2rem;
 }
 
-.topic-form button:disabled {
-  background: #8bb4f0;
-  cursor: not-allowed;
+.new-research, .history-item, .history-toggle {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: inherit;
+  background: transparent;
 }
 
-.error {
-  color: #cf222e;
+.new-research {
+  width: 100%;
+  margin: 34px 0 22px;
+  padding: 10px 12px;
+  text-align: left;
+  background: #fff;
+  border-color: var(--line);
+  font-weight: 600;
 }
 
-.status {
-  color: #57606a;
+.new-research span { margin-right: 6px; color: var(--accent); }
+.sidebar h2 { margin: 0 8px 8px; font-size: .875rem; color: var(--muted); }
+.empty-history { margin: 8px; color: var(--muted); font-size: .875rem; }
+
+.history-item {
+  display: block;
+  width: 100%;
+  padding: 9px 8px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .9rem;
 }
 
-.results {
+.history-item:hover, .history-item[aria-current="true"], .new-research:hover { background: #e9dff9; }
+.main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; }
+
+.topbar {
   display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  align-items: center;
+  gap: 14px;
+  padding: 19px 28px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: .9rem;
 }
 
-.panel {
-  border: 1px solid #d0d7de;
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  background: #f6f8fa;
+.history-toggle { display: none; }
+.view { overflow: auto; padding: 32px 24px; }
+.welcome-view { display: flex; }
+
+.welcome, .conversation, .composer { width: min(100%, 760px); margin-inline: auto; }
+.welcome { margin-block: auto; text-align: center; }
+.welcome-icon { width: 56px; height: 56px; font-size: 1.85rem; border-radius: 17px; }
+.welcome h1 { margin: 18px 0 10px; font-size: clamp(1.85rem, 4vw, 3.15rem); letter-spacing: -.055em; line-height: 1.12; }
+.welcome p { margin: 0; color: var(--muted); }
+
+.suggestions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 36px;
 }
 
-.panel h2 {
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-}
-
-.panel pre {
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: inherit;
-  font-size: 0.92rem;
+.suggestions button {
+  text-align: left;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: white;
+  color: inherit;
   line-height: 1.5;
-  margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  .page {
-    color: #e6edf3;
-  }
+.suggestions button:hover { background: #f6efff; border-color: #c6b1e6; }
+.suggestions span { display: block; margin-bottom: 6px; color: var(--accent); font-size: .875rem; font-weight: 700; }
 
-  .topic-form input {
-    background: #0d1117;
-    border-color: #30363d;
-    color: #e6edf3;
-  }
+.question {
+  width: fit-content;
+  max-width: min(84%, 590px);
+  margin: 0 0 30px auto;
+  padding: 12px 17px;
+  border-radius: 17px 17px 4px 17px;
+  background: #ede3ff;
+  overflow-wrap: anywhere;
+}
 
-  .panel {
-    background: #161b22;
-    border-color: #30363d;
+.answer-heading { margin-bottom: 16px; }
+.answer-heading h1 { font-size: 1rem; margin: 0; }
+.small-icon { width: 28px; height: 28px; font-size: .95rem; border-radius: 9px; }
+.working { color: var(--muted); }
+.error { color: #9b263d; }
+.article { line-height: 1.75; overflow-wrap: anywhere; }
+.article p, .details p { white-space: pre-wrap; }
+.article a { color: var(--accent); text-underline-offset: 3px; }
+.details { border-top: 1px solid var(--line); margin-top: 28px; }
+.details details { border-bottom: 1px solid var(--line); }
+.details summary { padding: 12px 0; cursor: pointer; font-weight: 600; }
+.details p { margin-top: 0; overflow-wrap: anywhere; line-height: 1.6; color: var(--muted); }
+
+.composer-area { padding: 14px 24px 24px; }
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  box-shadow: 0 8px 28px #40226010;
+}
+
+.composer:focus-within { border-color: #a98bd7; }
+.composer input { flex: 1; min-width: 0; padding: 10px 8px; border: 0; outline: none; color: inherit; background: transparent; }
+.composer button { padding: 10px 14px; border: 0; border-radius: 11px; color: white; background: var(--accent); font-weight: 600; }
+.composer button:hover:enabled { background: #4c2c91; }
+.composer button:disabled { background: #eee8f6; color: #62596e; }
+
+@media (max-width: 700px) {
+  .workspace { display: block; position: relative; }
+  .main { height: 100%; }
+  .topbar { padding: 10px 16px; }
+  .history-toggle { display: block; padding: 7px 10px; background: #f2eef8; }
+  .sidebar { display: none; }
+  .sidebar-open {
+    display: block;
+    position: absolute;
+    z-index: 1;
+    inset: 55px auto 0 0;
+    width: min(280px, 85vw);
+    box-shadow: 12px 0 32px #211d2d22;
   }
+  .view { padding: 24px 16px; }
+  .suggestions { grid-template-columns: 1fr; gap: 8px; margin-top: 24px; }
+  .suggestions button { padding: 10px 13px; }
+  .suggestions span { margin-bottom: 2px; }
+  .composer-area { padding: 10px 12px max(12px, env(safe-area-inset-bottom)); }
 }

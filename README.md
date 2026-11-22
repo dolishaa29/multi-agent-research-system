@@ -21,7 +21,7 @@ state = { search_results, reader_results, research }
 ```
 
 - `tools.py` — `web_search` (Tavily search, returns title/URL/snippet per result) and `scrape_url` (fetches a URL with `requests`/`BeautifulSoup`, strips scripts/nav/footer, returns up to 3000 chars of clean text).
-- `agent.py` — builds the search and reader ReAct agents (`create_agent` from LangChain, `ChatMistralAI`), plus a `writer_chain` (drafts an article from research notes, citing sources) and a `critic_chain` (reviews a draft against the notes and returns APPROVED/NEEDS REVISION with issues). **Not yet called from `pipeline.py`** — currently only the search and reader steps run.
+- `agent.py` — configures Gemini through `ChatGoogleGenerativeAI` and defines the planner, search and reader agents, writer, critic, and revision chains.
 - `pipeline.py` — `run_research_pipeline(topic)` runs the search agent, then the reader agent on its output, and combines both into a `research` string.
 - `server.py` — FastAPI app exposing `POST /api/research`, CORS-enabled for `http://localhost:5173`.
 - `frontend/` — React (Vite) single-page app: enter a topic, view search results, reader notes, and combined research.
@@ -40,17 +40,16 @@ Note: there's no persistence — each request re-runs the full pipeline synchron
 
 1. Create a `.env` file in this folder with:
    ```
-   MISTRAL_API_KEY=your_mistral_api_key
+   GEMINI_API_KEY=your_gemini_api_key
    TAVILY_API_KEY=your_tavily_api_key
    ```
-   (`GROQ_API_KEY` / `GEMINI_API_KEY` are present in `.env` but not currently used by any script here.)
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 3. Run the API:
    ```bash
-   uvicorn server:app --reload
+   python -m uvicorn server:app --reload
    ```
    Serves at `http://localhost:8000`.
 
@@ -78,6 +77,6 @@ python pipeline.py
 ## Tech stack
 
 - **Backend**: FastAPI, LangChain, LangGraph (`create_agent`)
-- **LLM**: Mistral AI (`mistral-small-2506`)
+- **LLM**: Google Gemini (`gemini-3.5-flash-lite` by default, configurable with `GEMINI_MODEL`)
 - **Tools**: Tavily (web search), `requests` + BeautifulSoup (scraping)
 - **Frontend**: React 19 + Vite

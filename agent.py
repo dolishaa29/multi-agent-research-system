@@ -1,27 +1,30 @@
+import os
+
 from langchain.agents import create_agent
-from langchain_mistralai import ChatMistralAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from tools import web_search,scrape_url
 from dotenv import load_dotenv
+
+from tools import scrape_url, web_search
+
 load_dotenv()
 
-llm=ChatMistralAI(model="mistral-small-2506",temperature=0)
+llm = ChatGoogleGenerativeAI(
+    model=os.getenv("GEMINI_MODEL") or "gemini-3.5-flash-lite",
+    api_key=os.environ["GEMINI_API_KEY"],
+    vertexai=False,
+)
 
 def build_search_agent():
-    return create_agent(
-        model=llm,
-        tools=[web_search]
-    ) 
+    return create_agent(model=llm, tools=[web_search])
+
 
 def build_reader_agent():
-    return create_agent(
-        model=llm,
-        tools=[scrape_url]
-    )
+    return create_agent(model=llm, tools=[scrape_url])
 
 
-planner_prompt=ChatPromptTemplate.from_messages([
+planner_prompt = ChatPromptTemplate.from_messages([
     ("system",
      "You are a research planner. Given a broad research topic, break it down into 3-5 "
      "focused sub-questions that together give comprehensive, non-overlapping coverage of the "
@@ -31,10 +34,10 @@ planner_prompt=ChatPromptTemplate.from_messages([
     ("human", "Topic: {topic}"),
 ])
 
-planner_chain=planner_prompt | llm | StrOutputParser()
+planner_chain = planner_prompt | llm | StrOutputParser()
 
 
-writer_promt=ChatPromptTemplate.from_messages([
+writer_prompt = ChatPromptTemplate.from_messages([
     ("system",
      "You are a professional research writer. You turn raw research notes into a clear, "
      "well-organized piece of writing.\n\n"
@@ -55,10 +58,10 @@ writer_promt=ChatPromptTemplate.from_messages([
 ])
 
 
-writer_chain=writer_promt | llm | StrOutputParser()
+writer_chain = writer_prompt | llm | StrOutputParser()
 
 
-critical_prompt=ChatPromptTemplate.from_messages([
+review_prompt = ChatPromptTemplate.from_messages([
     ("system",
      "You are a meticulous editor and fact-checker. You review a draft against the research "
      "notes it was supposed to be based on, and report problems — you do not rewrite the draft.\n\n"
@@ -80,4 +83,26 @@ critical_prompt=ChatPromptTemplate.from_messages([
 ])
 
 
-critic_chain=critical_prompt | llm | StrOutputParser()
+critic_chain = review_prompt | llm | StrOutputParser()
+
+
+revise_prompt = ChatPromptTemplate.from_messages([
+    ("system",
+     "You are a professional research writer revising a draft based on editorial feedback.\n\n"
+     "Rules:\n"
+     "- Address every issue the editor raised.\n"
+     "- Base every claim ONLY on the provided research. Never invent facts, statistics, quotes, "
+     "or sources that are not present in the research.\n"
+     "- Keep citing sources inline using [Title](URL).\n"
+     "- Keep the markdown heading structure.\n"
+     "- Output ONLY the revised article. No commentary about what you changed."),
+    ("human",
+     "Topic: {topic}\n\n"
+     "Research notes:\n{research}\n\n"
+     "Previous draft:\n{draft}\n\n"
+     "Editor feedback:\n{issues}\n\n"
+     "Revise the draft to address all the issues above."),
+])
+
+
+revise_chain = revise_prompt | llm | StrOutputParser()
